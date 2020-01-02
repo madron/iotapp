@@ -1,0 +1,10 @@
+switch_lamp:
+  module: toggle
+  class: Toggle
+  devices:
+    - kitchen_lamp
+    - living_room
+  load: kitchen_lamp
+  switches:
+    - kitchen_lamp
+    - living_room

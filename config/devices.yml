@@ -1,0 +1,12 @@
+kitchen:
+  type: tasmota-shelly-2.5
+  prefix: kitchen
+  entity:
+    kitchen_lamp: 1
+    coffee_machine: 2
+living_room:
+  type: tasmota-sonoff
+  prefix: living_room
+  entity:
+    living_room_lamp: 1
+    tv: 2
