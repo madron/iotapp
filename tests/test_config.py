@@ -77,3 +77,16 @@ class ValidateDevicesTest(unittest.TestCase):
         error = ko[device]['error']
         self.assertEqual(value, dict(type=1))
         self.assertEqual(error, 'Wrong type.')
+
+    def test_duplicated_devices(self):
+        devices = dict(
+            kitchen=dict(type='tasmota', devices=dict(lamp1=1)),
+            bedroom=dict(type='shelly', devices=dict(lamp1=2)),
+        )
+        ok, ko = config.validate_devices(devices)
+        self.assertEqual(ok, dict(kitchen=dict(type='tasmota', devices=dict(lamp1=1))))
+        device = 'bedroom'
+        value = ko[device]['value']
+        error = ko[device]['error']
+        self.assertEqual(value, dict(type='shelly', devices=dict(lamp1=2)))
+        self.assertEqual(error, 'Duplicated device.')

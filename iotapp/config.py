@@ -121,6 +121,18 @@ def validate_devices(devices):
             ko[key] = dict(value=value, error=error)
         else:
             ok[key] = value
+    devices = dict()
+    errors = []
+    for key, value in ok.items():
+        for device_name in value.get('devices', dict()).keys():
+            if device_name in devices:
+                error = 'Duplicated device.'
+                ko[key] = dict(value=value, error=error)
+                errors.append(key)
+            else:
+                devices[device_name] = key
+    for device_name in errors:
+        del ok[device_name]
     return ok, ko
 
 
