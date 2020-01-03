@@ -43,3 +43,37 @@ class ConfigMonitorTest(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(event, 'change')
                 # Stop monitor
                 await config_monitor.stop()
+
+
+class ValidateDevicesTest(unittest.TestCase):
+    def test_ok(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff'))
+        ok, ko = config.validate_devices(devices)
+        self.assertEqual(ok, dict(kitchen=dict(type='tasmota-sonoff')))
+        self.assertEqual(ko, dict())
+
+    def test_empty(self):
+        devices = dict()
+        ok, ko = config.validate_devices(devices)
+        self.assertEqual(ok, dict())
+        self.assertEqual(ko, dict())
+
+    def test_missing_type(self):
+        devices = dict(kitchen=dict())
+        ok, ko = config.validate_devices(devices)
+        self.assertEqual(ok, dict())
+        device = 'kitchen'
+        value = ko[device]['value']
+        error = ko[device]['error']
+        self.assertEqual(value, dict())
+        self.assertEqual(error, 'Missing type.')
+
+    def test_type_wrong_type(self):
+        devices = dict(kitchen=dict(type=1))
+        ok, ko = config.validate_devices(devices)
+        self.assertEqual(ok, dict())
+        device = 'kitchen'
+        value = ko[device]['value']
+        error = ko[device]['error']
+        self.assertEqual(value, dict(type=1))
+        self.assertEqual(error, 'Wrong type.')

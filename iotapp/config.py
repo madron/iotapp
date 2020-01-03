@@ -46,6 +46,7 @@ class ConfigManager(object):
         async with aiofiles.open(apps_file_name, mode='r') as f:
             apps_file_content = await f.read()
         devices = yaml.safe_load(devices_file_content)
+        devices_ok, devices_ko = validate_devices(devices)
         apps = yaml.safe_load(apps_file_content)
 
 
@@ -102,3 +103,23 @@ class ConfigMonitor(object):
     def get_files(self, path):
         entries = os.scandir(path)
         return dict([(x.name, x.stat().st_mtime) for x in entries if x.is_file()])
+
+
+def validate_devices(devices):
+    ok = dict()
+    ko = dict()
+    for key, value in devices.items():
+        error = validate_device(key, value)
+        if error:
+            ko[key] = dict(value=value, error=error)
+        else:
+            ok[key] = value
+    return ok, ko
+
+
+def validate_device(key, value):
+    if 'type' not in value:
+        return 'Missing type.'
+    if not isinstance(value['type'], str):
+        return 'Wrong type.'
+    return None
