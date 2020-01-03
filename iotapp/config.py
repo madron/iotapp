@@ -68,24 +68,31 @@ class ConfigMonitor(object):
         self.running = True
         loop = asyncio.get_running_loop()
         while self.stop_queue.empty():
-            config_files = await loop.run_in_executor(None, self.get_files, self.config_dir)
-            app_files = await loop.run_in_executor(None, self.get_files, self.apps_dir)
-            if not config_files == self.config_files or not app_files == self.app_files:
-                self.config_files = config_files
-                self.app_files = app_files
-                await self.queue.put('change')
-            # next_scan
-            for scan_queue in self.next_scan_queues:
-                await scan_queue.get()
-                scan_queue.task_done()
-            # wait loop
-            for i in range(self.scan_wait):
-                await asyncio.sleep(self.scan_interval)
-                if not self.stop_queue.empty():
-                    break
+            try:
+                await self.run_loop(loop)
+            except Exception:
+                logging.exception('Unhandled exception in ConfigMonitor')
+                await self.stop_queue.put('stop')
         await self.stop_queue.get()
         self.stop_queue.task_done()
         self.running = False
+
+    async def run_loop(self, loop):
+        config_files = await loop.run_in_executor(None, self.get_files, self.config_dir)
+        app_files = await loop.run_in_executor(None, self.get_files, self.apps_dir)
+        if not config_files == self.config_files or not app_files == self.app_files:
+            self.config_files = config_files
+            self.app_files = app_files
+            await self.queue.put('change')
+        # next_scan
+        for scan_queue in self.next_scan_queues:
+            await scan_queue.get()
+            scan_queue.task_done()
+        # wait loop
+        for i in range(self.scan_wait):
+            await asyncio.sleep(self.scan_interval)
+            if not self.stop_queue.empty():
+                break
 
     async def wait_next_scan(self):
         queue = asyncio.Queue()

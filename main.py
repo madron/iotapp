@@ -56,6 +56,7 @@ async def shutdown(controller):
         pass
     logging.info('Shutdown completed')
 
+
 async def handle_exception(coro, loop):
     try:
         await coro
