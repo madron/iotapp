@@ -3,8 +3,8 @@ switch_lamp:
   class: Toggle
   devices:
     - kitchen_lamp
-    - living_room
+    - living_room_lamp
   load: kitchen_lamp
   switches:
     - kitchen_lamp
-    - living_room
+    - living_room_lamp

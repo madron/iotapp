@@ -90,3 +90,73 @@ class ValidateDevicesTest(unittest.TestCase):
         error = ko[device]['error']
         self.assertEqual(value, dict(type='shelly', devices=dict(lamp1=2)))
         self.assertEqual(error, 'Duplicated device.')
+
+
+class GetDeviceDictTest(unittest.TestCase):
+    def test_ok(self):
+        devices = dict(
+            kitchen=dict(type='tasmota-shelly-2.5', devices=dict(kitchen_lamp=1, coffee_machine=2)),
+            living_room=dict(type='tasmota-sonoff', devices=dict(living_room_lamp=1, tv=2)),
+        )
+        device = config.get_device_dict(devices)
+        self.assertEqual(len(device), 4)
+        self.assertEqual(device['kitchen_lamp'], 'kitchen')
+        self.assertEqual(device['coffee_machine'], 'kitchen')
+        self.assertEqual(device['living_room_lamp'], 'living_room')
+        self.assertEqual(device['tv'], 'living_room')
+
+
+class ValidateAppsTest(unittest.TestCase):
+    def test_ok(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff', devices=dict(kitchen_lamp=1)))
+        apps = {'switch_lamp': {'module': 'toggle', 'class': 'Toggle', 'devices': ['kitchen_lamp']}}
+        ok, ko = config.validate_apps(devices, apps)
+        self.assertEqual(ok, {'switch_lamp': {'module': 'toggle', 'class': 'Toggle', 'devices': ['kitchen_lamp']}})
+        self.assertEqual(ko, dict())
+
+    def test_missing_device_parameter(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff', devices=dict(kitchen_lamp=1)))
+        apps = {'switch_lamp': {'module': 'toggle', 'class': 'Toggle'}}
+        ok, ko = config.validate_apps(devices, apps)
+        self.assertEqual(ok, {'switch_lamp': {'module': 'toggle', 'class': 'Toggle', 'devices': []}})
+        self.assertEqual(ko, dict())
+
+    def test_missing_module(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff', devices=dict(kitchen_lamp=1)))
+        apps = {'switch_lamp': {'class': 'Toggle', 'devices': ['kitchen_lamp']}}
+        ok, ko = config.validate_apps(devices, apps)
+        self.assertEqual(ok, dict())
+        app = 'switch_lamp'
+        value = ko[app]['value']
+        error = ko[app]['error']
+        self.assertEqual(value, {'class': 'Toggle', 'devices': ['kitchen_lamp']})
+        self.assertEqual(error, 'Missing module.')
+
+    def test_missing_class(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff', devices=dict(kitchen_lamp=1)))
+        apps = {'switch_lamp': {'module': 'toggle', 'devices': ['kitchen_lamp']}}
+        ok, ko = config.validate_apps(devices, apps)
+        self.assertEqual(ok, dict())
+        app = 'switch_lamp'
+        value = ko[app]['value']
+        error = ko[app]['error']
+        self.assertEqual(value, {'module': 'toggle', 'devices': ['kitchen_lamp']})
+        self.assertEqual(error, 'Missing class.')
+
+    def test_missing_device(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff', devices=dict(kitchen_lamp=1)))
+        apps = {'switch_lamp': {'module': 'toggle', 'class': 'Toggle', 'devices': ['tv']}}
+        ok, ko = config.validate_apps(devices, apps)
+        self.assertEqual(ok, dict())
+        app = 'switch_lamp'
+        value = ko[app]['value']
+        error = ko[app]['error']
+        self.assertEqual(value, {'module': 'toggle', 'class': 'Toggle', 'devices': ['tv']})
+        self.assertEqual(error, 'Device "tv" not available.')
+
+    def test_empty(self):
+        devices = dict(kitchen=dict(type='tasmota-sonoff', devices=dict(kitchen_lamp=1)))
+        apps = dict()
+        ok, ko = config.validate_apps(devices, apps)
+        self.assertEqual(ok, dict())
+        self.assertEqual(ko, dict())

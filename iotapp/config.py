@@ -25,10 +25,18 @@ class ConfigManager(object):
             asyncio.create_task(self.monitor.run()),
         )
         while True:
-            await self.monitor_queue.get()
-            await self.handle_config_change()
-            self.monitor_queue.task_done()
+            try:
+                await self.run_loop()
+            except Exception:
+                logging.exception('Unhandled exception in ConfigManager')
+                await self.stop()
+                return
         await self.tasks
+
+    async def run_loop(self):
+        await self.monitor_queue.get()
+        await self.handle_config_change()
+        self.monitor_queue.task_done()
 
     async def stop(self):
         if self.running:
@@ -47,7 +55,12 @@ class ConfigManager(object):
             apps_file_content = await f.read()
         devices = yaml.safe_load(devices_file_content)
         devices_ok, devices_ko = validate_devices(devices)
+        for k, v in devices_ko.items():
+            logging.error('Device "{}" discarded: {}'.format(k, v['error']))
         apps = yaml.safe_load(apps_file_content)
+        apps_ok, apps_ko = validate_apps(devices_ok, apps)
+        for k, v in apps_ko.items():
+            logging.error('App "{}" discarded: {}'.format(k, v['error']))
 
 
 class ConfigMonitor(object):
@@ -142,3 +155,38 @@ def validate_device(key, value):
     if not isinstance(value['type'], str):
         return 'Wrong type.'
     return None
+
+
+def validate_apps(devices, apps):
+    ok = dict()
+    ko = dict()
+    devices = get_device_dict(devices)
+    for key, value in apps.items():
+        value['devices'] = value.get('devices', [])
+        error = validate_app(key, value, devices)
+        if error:
+            ko[key] = dict(value=value, error=error)
+        else:
+            ok[key] = value
+
+    return ok, ko
+
+
+def validate_app(app_name, app, devices):
+    available_devices = list(devices.keys())
+    if 'module' not in app:
+        return 'Missing module.'
+    if 'class' not in app:
+        return 'Missing class.'
+    for device in app['devices']:
+        if device not in available_devices:
+            return 'Device "{}" not available.'.format(device)
+    return None
+
+
+def get_device_dict(devices):
+    device_dict = dict()
+    for key, value in devices.items():
+        for device in value.get('devices', dict()).keys():
+            device_dict[device] = key
+    return device_dict
