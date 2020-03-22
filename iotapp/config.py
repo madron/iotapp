@@ -47,6 +47,7 @@ class ConfigManager(object):
 
 
     async def handle_config_change(self):
+        logging.info('Check config')
         devices_file_name = os.path.join(self.config_dir, constants.DEVICES_FILE_NAME)
         apps_file_name = os.path.join(self.config_dir, constants.APPS_FILE_NAME)
         async with aiofiles.open(devices_file_name, mode='r') as f:
@@ -134,16 +135,17 @@ def validate_devices(devices):
             ko[key] = dict(value=value, error=error)
         else:
             ok[key] = value
-    devices = dict()
+    entities = dict()
     errors = []
     for key, value in ok.items():
-        for device_name in value.get('devices', dict()).keys():
-            if device_name in devices:
-                error = 'Duplicated device.'
+        for entity in value.get('entities', dict()).keys():
+            if entity in entities:
+                # print(entity)
+                error = 'Duplicated entity.'
                 ko[key] = dict(value=value, error=error)
                 errors.append(key)
             else:
-                devices[device_name] = key
+                entities[entity] = key
     for device_name in errors:
         del ok[device_name]
     return ok, ko
@@ -160,33 +162,32 @@ def validate_device(key, value):
 def validate_apps(devices, apps):
     ok = dict()
     ko = dict()
-    devices = get_device_dict(devices)
+    entities = get_entities(devices)
     for key, value in apps.items():
-        value['devices'] = value.get('devices', [])
-        error = validate_app(key, value, devices)
+        value['entities'] = value.get('entities', [])
+        error = validate_app(key, value, entities)
         if error:
             ko[key] = dict(value=value, error=error)
         else:
             ok[key] = value
-
     return ok, ko
 
 
-def validate_app(app_name, app, devices):
-    available_devices = list(devices.keys())
+def validate_app(app_name, app, entities):
+    available_entities = list(entities.keys())
     if 'module' not in app:
         return 'Missing module.'
     if 'class' not in app:
         return 'Missing class.'
-    for device in app['devices']:
-        if device not in available_devices:
-            return 'Device "{}" not available.'.format(device)
+    for entity in app['entities']:
+        if entity not in available_entities:
+            return 'Entity "{}" not available.'.format(entity)
     return None
 
 
-def get_device_dict(devices):
-    device_dict = dict()
+def get_entities(devices):
+    entities = dict()
     for key, value in devices.items():
-        for device in value.get('devices', dict()).keys():
-            device_dict[device] = key
-    return device_dict
+        for entity in value.get('entities', dict()).keys():
+            entities[entity] = key
+    return entities

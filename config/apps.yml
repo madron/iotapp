@@ -1,7 +1,7 @@
 switch_lamp:
   module: toggle
   class: Toggle
-  devices:
+  entities:
     - kitchen_lamp
     - living_room_lamp
   load: kitchen_lamp
