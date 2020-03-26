@@ -22,8 +22,8 @@ class IotAppTest(unittest.TestCase):
 
     def test_subscribe(self):
         IotApp(client=self.client, logger=self.logger)
-        self.client.publish('topic', payload='data')
-        self.assertEqual(self.client.published, [('topic', 'data')])
+        self.client.subscribe('topic')
+        self.assertEqual(self.client.subscribed, ['topic'])
 
     def test_receive(self):
         self.logger = TestLogger(level='debug')

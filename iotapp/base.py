@@ -14,12 +14,10 @@ class IotApp(LoggerMixin):
         self.client.on_message = self.on_message
         self.topic_entity = dict()
         # Entities
-        for name, entity_class in self.entities.items():
-            entity = entity_class(name=name, client=self.client)
+        for name, entity in self.entities.items():
+            entity.set_client(self.client)
             setattr(self, name, entity)
-            # entiry
-            for topic in entity.get_event_topics():
-                self.client.subscribe(topic)
+            for topic in entity.get_subscribe_topics():
                 self.topic_entity[topic] = name
 
     def get_mqtt_config(self):
@@ -38,7 +36,7 @@ class IotApp(LoggerMixin):
             self.logger.info('Connected to {host}:{port}'.format(**self.mqtt_config))
             for topic, entity_name in self.topic_entity.items():
                 entity = getattr(self, entity_name)
-                for topic in entity.get_event_topics():
+                for topic in entity.get_subscribe_topics():
                     self.client.subscribe(topic)
                 entity.on_connect()
         except:
@@ -49,8 +47,8 @@ class IotApp(LoggerMixin):
             self.logger.debug('on_message - {} {}'.format(msg.topic, msg.payload))
             entity_name = self.topic_entity[msg.topic]
             entity = getattr(self, entity_name)
-            event = entity.get_event(msg.topic, msg.payload.decode('utf-8'))
-            if event:
+            events = entity.get_events(msg.topic, msg.payload.decode('utf-8'))
+            for event in events:
                 self.on_event(event, entity_name)
         except:
             msg = 'on_message - topic: {} - payload: {} - userdata: {}'.format(msg.topic, msg.payload, userdata)
