@@ -12,9 +12,11 @@ class IotAppTest(unittest.TestCase):
         IotApp(client=self.client, logger=self.logger)
 
     def test_connect(self):
-        IotApp(client=self.client, logger=self.logger)
+        IotApp(availability_topic='iotapp/app/state', client=self.client, logger=self.logger)
         self.client.connect()
         self.assertEqual(self.logger.logged, [('info', 'Connected to localhost:1883')])
+        self.assertEqual(self.client.will_set_called, [('iotapp/app/state', 'offline')])
+        self.assertEqual(self.client.published, [('iotapp/app/state', 'online')])
 
     def test_publish(self):
         self.client.publish('topic', payload='data')

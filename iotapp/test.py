@@ -9,6 +9,7 @@ class TestClient:
         self.on_message = None
         self.subscribed = []
         self.published = []
+        self.will_set_called = []
 
     def connect(self, *args, **kwargs):
         self.on_connect(client=None, userdata=None, flags=None, rc=None)
@@ -18,6 +19,9 @@ class TestClient:
 
     def subscribe(self, topic, qos=0, options=None, properties=None):
         self.subscribed.append(topic)
+
+    def will_set(self, topic, payload=None, qos=0, retain=False, properties=None):
+        self.will_set_called.append((topic, payload))
 
     def receive(self, topic, payload):
         msg = Message()
