@@ -9,7 +9,7 @@ class IotApp(LoggerMixin):
     def __init__(self, name=None, availability_topic=None, log_level=None, client=None, logger=None):
         self.name = name or type(self).__name__.lower()
         self.availability_topic = availability_topic or 'iotapp/{}/state'.format(self.name)
-        self.logger = logger or self.get_logger(level=log_level, name='app')
+        self.logger = logger or self.get_logger(level=log_level)
         self.mqtt_config = self.get_mqtt_config()
         self.client = client or mqtt.Client(client_id=self.mqtt_config['client_id'])
         self.client.on_connect = self.on_connect
@@ -17,7 +17,9 @@ class IotApp(LoggerMixin):
         self.topic_entity = dict()
         # Entities
         for name, entity in self.entities.items():
+            entity.set_name(name=name)
             entity.set_client(self.client)
+            entity.set_logger(name=name)
             setattr(self, name, entity)
             for topic in entity.get_subscribe_topics():
                 self.topic_entity[topic] = name

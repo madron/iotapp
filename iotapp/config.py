@@ -12,7 +12,6 @@ def validate_devices(devices):
     for key, value in ok.items():
         for entity in value.get('entities', dict()).keys():
             if entity in entities:
-                # print(entity)
                 error = 'Duplicated entity.'
                 ko[key] = dict(value=value, error=error)
                 errors.append(key)

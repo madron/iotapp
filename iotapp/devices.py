@@ -11,9 +11,13 @@ class Entity(LoggerMixin):
                     logger=None,
                     log_level=None,
                 ):
-        self.name = name
-        self.logger = logger or self.get_logger(name=self.name, level=log_level)
+        self.set_name(name)
         self.set_client(client)
+        self.log_level = log_level
+        self.logger = logger or self.get_logger(name='entity')
+
+    def set_name(self, name):
+        self.name = name
 
     def set_client(self, client):
         self.client = client
