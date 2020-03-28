@@ -60,24 +60,24 @@ class IotApp(LoggerMixin):
             entity = getattr(self, entity_name)
             events = entity.get_events(msg.topic, msg.payload.decode('utf-8'))
             for event in events:
-                self.on_event(event, entity_name)
+                self.process_event(entity_name, event)
         except:
             msg = 'on_message - topic: {} - payload: {} - userdata: {}'.format(msg.topic, msg.payload, userdata)
             self.logger.exception(msg, exc_info=True)
 
-    def on_event(self, event, name):
+    def process_event(self, name, event):
         try:
-            self.logger.debug('on_event - event: {} - name: {}'.format(event, name))
-            func_name = 'on_{}_{}'.format(name, event['type'])
+            self.logger.debug('process_event - {} {}'.format(name, event))
+            func_name = 'on_{}_{}'.format(name, event.type)
             func = getattr(self, func_name, None)
             if func:
                 try:
-                    func()
+                    func(*event.args, **event.kwargs)
                 except:
                     msg = '{} - event: {}'.format(func_name, event)
                     self.logger.exception(msg, exc_info=True)
         except:
-            msg = 'on_event - event: {} - name: {}'.format(event, name)
+            msg = 'process_event - {} {}'.format(name, event)
             self.logger.exception(msg, exc_info=True)
 
     def run(self):

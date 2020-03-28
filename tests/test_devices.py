@@ -1,5 +1,6 @@
 import unittest
 from iotapp import devices
+from iotapp.events import Event
 from iotapp.test import TestClient, TestLogger
 
 
@@ -26,7 +27,7 @@ class ButtonTest(unittest.TestCase):
             state_value_click = 'pressed',
             state_value_template = '',
         )
-        self.assertEqual(button.get_events(topic, 'pressed'), [dict(type='click', data=None)])
+        self.assertEqual(button.get_events(topic, 'pressed'), [Event('click')])
         self.assertEqual(button.get_events(topic, ''), [])
 
     def test_aqara_lumi_sensor_switch_aq2(self):
@@ -38,7 +39,7 @@ class ButtonTest(unittest.TestCase):
             state_value_template = '{{ value.click }}',
         )
         payload = '{"battery":100,"voltage":3015,"linkquality":0,"click":"single"}'
-        self.assertEqual(button.get_events(topic, payload), [dict(type='click', data=None)])
+        self.assertEqual(button.get_events(topic, payload), [Event('click')])
         payload = '{"battery":100,"voltage":3015,"linkquality":0,"click":""}'
         self.assertEqual(button.get_events(topic, payload), [])
 

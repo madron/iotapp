@@ -1,6 +1,7 @@
 import unittest
 from iotapp import devices
 from iotapp.base import IotApp
+from iotapp.events import Event
 from iotapp.test import TestClient, TestLogger
 
 
@@ -29,13 +30,20 @@ class ToggleTest(unittest.TestCase):
         self.assertEqual(self.logger.logged, [('info', 'Connected to localhost:1883')])
         self.assertEqual(self.client.subscribed, ['button/state', 'light/state'])
 
-    def test_button_state_on(self):
+    def test_button_state_on_low_level(self):
         # Light state on
         self.client.receive('light/state', 'on')
         self.assertEqual(self.app.light.state, 'on')
         # Button pressed
         self.client.receive('button/state', 'click')
         self.assertEqual(self.client.published, [('light/command', 'off')])
+        self.assertEqual(self.logger.logged, [('info', 'on_button_click -> light: off')])
+
+    def test_button_state_on(self):
+        # Light state on
+        self.app.light.state = 'on'
+        # Button pressed
+        self.app.process_event('button', Event('click'))
         self.assertEqual(self.logger.logged, [('info', 'on_button_click -> light: off')])
 
     def test_button_state_off(self):
@@ -49,7 +57,7 @@ class ToggleTest(unittest.TestCase):
 
     def test_button_state_unknown(self):
         # Light state
-        self.app.light.state = None
+        self.assertEqual(self.app.light.state, None)
         # Button pressed
         self.client.receive('button/state', 'click')
         self.assertEqual(self.client.published, [])

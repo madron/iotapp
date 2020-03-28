@@ -1,5 +1,6 @@
 import json
 from jinja2 import Template
+from iotapp.events import Event
 from iotapp.logger import LoggerMixin
 
 
@@ -71,7 +72,7 @@ class Button(Entity):
                 data = json.loads(payload)
                 value = self.state_value_template.render(value=data)
             if value == self.state_value_click:
-                return [dict(type='click', data=None)]
+                return [Event('click')]
         return []
 
 
