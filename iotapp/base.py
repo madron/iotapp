@@ -23,6 +23,11 @@ class IotApp(LoggerMixin):
             setattr(self, name, entity)
             for topic in entity.get_subscribe_topics():
                 self.topic_entity[topic] = name
+        self.reset_state()
+
+    def reset_state(self):
+        for entity in self.entities.values():
+            entity.reset_state()
 
     def get_mqtt_config(self):
         username = os.environ.get('MQTT_USERNAME', None)

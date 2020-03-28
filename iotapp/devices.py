@@ -15,6 +15,10 @@ class Entity(LoggerMixin):
         self.set_client(client)
         self.log_level = log_level
         self.logger = logger or self.get_logger(name='entity')
+        self.reset_state()
+
+    def reset_state(self):
+        pass
 
     def set_name(self, name):
         self.name = name
@@ -102,6 +106,8 @@ class Light(Entity):
         self.command_value_on = command_value_on
         self.command_value_off = command_value_off
         self.command_value_template = command_value_template
+
+    def reset_state(self):
         self.state = None
 
     def get_subscribe_topics(self):
