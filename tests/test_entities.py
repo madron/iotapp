@@ -1,27 +1,27 @@
 import unittest
-from iotapp import devices
+from iotapp import entities
 from iotapp.events import Event
 from iotapp.test import TestClient, TestLogger
 
 
 class EntityTest(unittest.TestCase):
     def test_get_subscribe_topics(self):
-        entity = devices.Entity()
+        entity = entities.Entity()
         self.assertEqual(entity.get_subscribe_topics(), [])
 
     def test_get_events(self):
-        entity = devices.Entity()
+        entity = entities.Entity()
         self.assertEqual(entity.get_events('topic', 'value'), [])
 
     def test_on_connect(self):
-        entity = devices.Entity()
+        entity = entities.Entity()
         self.assertEqual(entity.on_connect(), None)
 
 
 class ButtonTest(unittest.TestCase):
     def test_text(self):
         topic = 'state/topic'
-        button = devices.Button(
+        button = entities.Button(
             state_topic = topic,
             state_type = 'text',
             state_value_click = 'pressed',
@@ -32,7 +32,7 @@ class ButtonTest(unittest.TestCase):
 
     def test_aqara_lumi_sensor_switch_aq2(self):
         topic = 'state/topic'
-        button = devices.Button(
+        button = entities.Button(
             state_topic = topic,
             state_type = 'json',
             state_value_click = 'single',
@@ -44,7 +44,7 @@ class ButtonTest(unittest.TestCase):
         self.assertEqual(button.get_events(topic, payload), [])
 
     def test_get_subscribe_topics(self):
-        button = devices.Button(state_topic = 'state/topic')
+        button = entities.Button(state_topic = 'state/topic')
         self.assertEqual(button.get_subscribe_topics(), ['state/topic'])
 
 
@@ -54,7 +54,7 @@ class LightShellyRgbw2Test(unittest.TestCase):
         self.logger = TestLogger()
         self.state_topic = 'shellies/shelly_rgbw2/white/0'
         self.command_topic = 'shellies/shelly_rgbw2/white/0/command'
-        self.light = devices.Light(
+        self.light = entities.Light(
             client=self.client,
             logger=self.logger,
             state_topic = self.state_topic,

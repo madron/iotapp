@@ -1,5 +1,5 @@
 import unittest
-from iotapp import devices
+from iotapp import entities
 from iotapp.base import IotApp
 from iotapp.events import Event
 from iotapp.test import TestClient, TestLogger
@@ -8,8 +8,8 @@ from iotapp.test import TestClient, TestLogger
 class ToggleApp(IotApp):
     log_level = 'debug'
     entities = dict(
-        button=devices.Button(state_topic='button/state'),
-        light=devices.Light(state_topic='light/state', command_topic='light/command'),
+        button=entities.Button(state_topic='button/state'),
+        light=entities.Light(state_topic='light/state', command_topic='light/command'),
     )
 
     def on_button_click(self):
