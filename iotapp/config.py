@@ -1,3 +1,40 @@
+from iotapp.devices import aqara
+from iotapp.devices import shelly
+from iotapp.logger import LoggerMixin
+
+
+DEVICE_CLASS = {
+    'aqara-button': aqara.Button,
+    'shelly-rgbw2': shelly.Rgbw2,
+}
+
+
+class DeviceManager(LoggerMixin):
+    def __init__(self, devices=dict(), log_level=None, logger=None):
+        self.logger = logger or self.get_logger(name='manager', level=log_level)
+        self.devices = dict()
+        for name, config in devices.items():
+            try:
+                device_type = config.pop('type')
+                device_class = DEVICE_CLASS[device_type]
+                device = device_class(name, **config)
+                self.devices[name] = device.get_entities()
+            except:
+                msg = 'device discarded: {}'.format(name)
+                self.logger.exception(msg, exc_info=True)
+        self.entities = self.get_entities(self.devices)
+
+    def get_entities(self, devices):
+        entities = dict()
+        for device_name, device_entities in devices.items():
+            for entity_name, entity in device_entities.items():
+                if entity_name in entities:
+                    msg = 'duplicate entity: {}.{}'.format(device_name, entity_name)
+                    self.logger.error(msg)
+                else:
+                    entities[entity_name] = entity
+        return entities
+
 def validate_devices(devices):
     ok = dict()
     ko = dict()
