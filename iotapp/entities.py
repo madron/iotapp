@@ -31,82 +31,25 @@ class Entity(LoggerMixin):
         return []
 
     def get_events(self, topic, payload):
+        self.logger.debug('get_events - {} {}'.format(topic, payload))
         return []
 
     def on_connect(self):
         pass
 
 
-class Button(Entity):
+class StateEntity(Entity):
     def __init__(   self,
-                    # Entity
-                    name=None,
-                    client=None,
-                    logger=None,
-                    log_level=None,
-                    #
                     state_topic=None,
                     state_type='text',
-                    state_value_click='click',
                     state_value_template='',
+                    **kwargs,
                 ):
-        super().__init__(name=name, client=client, logger=logger, log_level=log_level)
+        super().__init__(**kwargs)
         self.state_topic = state_topic
         self.state_type = state_type
-        self.state_value_click = state_value_click
         self.state_value_template = Template(state_value_template)
-
-    def get_subscribe_topics(self):
-        topics = super().get_subscribe_topics()
-        if self.state_topic:
-            topics.append(self.state_topic)
-        return topics
-
-    def get_events(self, topic, payload):
-        self.logger.debug('get_events - {}  {}'.format(topic, payload))
-        if topic == self.state_topic:
-            value = None
-            if self.state_type == 'text':
-                value = payload
-            elif self.state_type == 'json':
-                data = json.loads(payload)
-                value = self.state_value_template.render(value=data)
-            if value == self.state_value_click:
-                return [Event('click')]
-        return []
-
-
-class Light(Entity):
-    def __init__(   self,
-                    # Entity
-                    name=None,
-                    client=None,
-                    logger=None,
-                    log_level=None,
-                    #
-                    state_topic=None,
-                    state_type='text',
-                    state_value_on='on',
-                    state_value_off='off',
-                    state_value_template='',
-                    #
-                    command_topic=None,
-                    command_type='text',
-                    command_value_on='on',
-                    command_value_off='off',
-                    command_value_template='',
-                ):
-        super().__init__(name=name, client=client, logger=logger, log_level=log_level)
-        self.state_topic = state_topic
-        self.state_type = state_type
-        self.state_value_on = state_value_on
-        self.state_value_off = state_value_off
-        self.state_value_template = Template(state_value_template)
-        self.command_topic = command_topic
-        self.command_type = command_type
-        self.command_value_on = command_value_on
-        self.command_value_off = command_value_off
-        self.command_value_template = command_value_template
+        self.reset_state()
 
     def reset_state(self):
         self.state = None
@@ -118,7 +61,7 @@ class Light(Entity):
         return topics
 
     def get_events(self, topic, payload):
-        self.logger.debug('get_events - {}  {}'.format(topic, payload))
+        events = super().get_events(topic, payload)
         if topic == self.state_topic:
             value = None
             if self.state_type == 'text':
@@ -126,11 +69,55 @@ class Light(Entity):
             elif self.state_type == 'json':
                 data = json.loads(payload)
                 value = self.state_value_template.render(value=data)
-            if value == self.state_value_on:
-                self.state = 'on'
-            elif value == self.state_value_off:
-                self.state = 'off'
+        return events + self.get_state_events(value)
+
+    def get_state_events(self, value):
         return []
+
+
+class Button(StateEntity):
+    def __init__(   self,
+                    state_value_click='click',
+                    **kwargs,
+                ):
+        super().__init__(**kwargs)
+        self.state_value_click = state_value_click
+
+    def get_state_events(self, value):
+        events = super().get_state_events(value)
+        if value == self.state_value_click:
+            events.append(Event('click'))
+        return events
+
+
+class Light(StateEntity):
+    def __init__(   self,
+                    state_value_on='on',
+                    state_value_off='off',
+                    #
+                    command_topic=None,
+                    command_type='text',
+                    command_value_on='on',
+                    command_value_off='off',
+                    command_value_template='',
+                    **kwargs
+                ):
+        super().__init__(**kwargs)
+        self.state_value_on = state_value_on
+        self.state_value_off = state_value_off
+        self.command_topic = command_topic
+        self.command_type = command_type
+        self.command_value_on = command_value_on
+        self.command_value_off = command_value_off
+        self.command_value_template = command_value_template
+
+    def get_state_events(self, value):
+        events = super().get_state_events(value)
+        if value == self.state_value_on:
+            self.state = 'on'
+        elif value == self.state_value_off:
+            self.state = 'off'
+        return events
 
     def turn_on(self):
         self.client.publish(self.command_topic, payload=self.command_value_on)
