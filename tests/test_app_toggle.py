@@ -5,6 +5,17 @@ from iotapp.events import Event
 from iotapp.test import TestClient, TestLogger
 
 
+DEVICES = dict(
+    button=dict(
+        type='aqara-button',
+    ),
+    kitchen=dict(
+        type='shelly-rgbw2',
+        mode='white',
+    ),
+)
+
+
 class ToggleApp(IotApp):
     log_level = 'debug'
     entities = dict(
@@ -21,7 +32,7 @@ class ToggleTest(unittest.TestCase):
     def setUp(self):
         self.client = TestClient()
         self.logger = TestLogger()
-        self.app = ToggleApp(client=self.client, logger=self.logger)
+        self.app = ToggleApp(devices=DEVICES, client=self.client, logger=self.logger)
         self.app.button.logger = self.logger
         self.app.light.logger = self.logger
 

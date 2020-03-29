@@ -9,10 +9,10 @@ class IotAppTest(unittest.TestCase):
         self.logger = TestLogger()
 
     def test_init(self):
-        IotApp(client=self.client, logger=self.logger)
+        IotApp(devices=dict(), client=self.client, logger=self.logger)
 
     def test_connect(self):
-        IotApp(availability_topic='iotapp/app/state', client=self.client, logger=self.logger)
+        IotApp(devices=dict(), availability_topic='iotapp/app/state', client=self.client, logger=self.logger)
         self.client.connect()
         self.assertEqual(self.logger.logged, [('info', 'Connected to localhost:1883')])
         self.assertEqual(self.client.will_set_called, [('iotapp/app/state', 'offline')])
@@ -23,12 +23,12 @@ class IotAppTest(unittest.TestCase):
         self.assertEqual(self.client.published, [('topic', 'data')])
 
     def test_subscribe(self):
-        IotApp(client=self.client, logger=self.logger)
+        IotApp(devices=dict(), client=self.client, logger=self.logger)
         self.client.subscribe('topic')
         self.assertEqual(self.client.subscribed, ['topic'])
 
     def test_receive(self):
         self.logger = TestLogger(level='debug')
-        IotApp(client=self.client, logger=self.logger)
+        IotApp(devices=dict(), client=self.client, logger=self.logger)
         self.client.receive('topic', 'data')
         self.assertEqual(self.logger.logged[0], ('debug', "on_message - topic b'data'"))

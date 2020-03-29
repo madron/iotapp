@@ -1,12 +1,13 @@
 import os
 import paho.mqtt.client as mqtt
-from .logger import LoggerMixin
+from iotapp.config import DeviceManager
+from iotapp.logger import LoggerMixin
 
 
 class IotApp(LoggerMixin):
     entities = dict()
 
-    def __init__(self, name=None, availability_topic=None, log_level=None, client=None, logger=None):
+    def __init__(self, name=None, devices=None, availability_topic=None, log_level=None, client=None, logger=None):
         self.name = name or type(self).__name__.lower()
         self.availability_topic = availability_topic or 'iotapp/{}/state'.format(self.name)
         self.logger = logger or self.get_logger(level=log_level)
@@ -14,6 +15,7 @@ class IotApp(LoggerMixin):
         self.client = client or mqtt.Client(client_id=self.mqtt_config['client_id'])
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        self.set_entity_library(devices)
         self.topic_entity = dict()
         # Entities
         for name, entity in self.entities.items():
@@ -24,6 +26,13 @@ class IotApp(LoggerMixin):
             for topic in entity.get_subscribe_topics():
                 self.topic_entity[topic] = name
         self.reset_state()
+
+    def set_entity_library(self, devices):
+        if devices is None:
+            manager = DeviceManager(devices_file=os.environ.get('IOTAPP_DEVICES', 'devices.yml'))
+        else:
+            manager = DeviceManager(devices=devices or dict())
+        self.entity_library = manager.entities
 
     def reset_state(self):
         for entity in self.entities.values():
