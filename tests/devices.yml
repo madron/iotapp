@@ -1,2 +1,5 @@
-button:
+table_button:
   type: aqara-button
+kitchen_lamp:
+  type: shelly-rgbw2
+  mode: white

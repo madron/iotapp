@@ -1,0 +1,10 @@
+toggle_kitchen_lamp:
+  app: iotapp.apps.toggle.Toggle
+  # log_level: debug
+  entities:
+    table_button:
+  #     log_level: debug
+    kitchen_lamp:
+  #     log_level: debug
+  button: table_button
+  light: kitchen_lamp

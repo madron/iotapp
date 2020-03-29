@@ -10,18 +10,6 @@ class DevicesManagerTest(unittest.TestCase):
     def setUp(self):
         self.logger = TestLogger()
 
-    def test_devices_files(self):
-        devices_file = os.path.join(os.path.dirname(__file__), 'devices.yml')
-        manager = DeviceManager(devices_file=devices_file)
-        self.assertEqual(len(manager.entities), 1)
-        entity = manager.entities['button']
-        self.assertEqual(entity['class'], entities.Button)
-        config = entity['config']
-        self.assertEqual(config['state_topic'], 'zigbee/button')
-        self.assertEqual(config['state_type'], 'json')
-        self.assertEqual(config['state_value_click'], 'single')
-        self.assertEqual(config['state_value_template'], '{{ value.click }}')
-
     def test_entities(self):
         devices = dict(
             button=dict(

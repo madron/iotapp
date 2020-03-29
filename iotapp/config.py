@@ -42,6 +42,7 @@ class DeviceManager(LoggerMixin):
                     entities[entity_name] = entity
         return entities
 
+
 def validate_devices(devices):
     ok = dict()
     ko = dict()
