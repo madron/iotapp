@@ -1,5 +1,6 @@
 import os
 import paho.mqtt.client as mqtt
+from copy import copy
 from iotapp.config import DeviceManager
 from iotapp.logger import LoggerMixin
 
@@ -17,22 +18,16 @@ class IotApp(LoggerMixin):
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.topic_entity = dict()
-        # Entities
-        for name, entity in self.entities.items():
-            entity.set_name(name=name)
-            entity.set_client(self.client)
-            entity.set_logger(name=name)
-            setattr(self, name, entity)
-            for topic in entity.get_subscribe_topics():
-                self.topic_entity[topic] = name
-        self.reset_state()
 
-    def set_entity_library(self, entities):
-        self.entity_library = entities
-
-    def reset_state(self):
-        for entity in self.entities.values():
-            entity.reset_state()
+    def add_entity(self, name, entity_name):
+        entity = copy(self.entity_library[entity_name])
+        entity.set_name(name=name)
+        entity.set_client(self.client)
+        entity.set_logger(name=name)
+        entity.reset_state()
+        setattr(self, name, entity)
+        for topic in entity.get_subscribe_topics():
+            self.topic_entity[topic] = name
 
     def get_mqtt_config(self):
         username = os.environ.get('MQTT_USERNAME', None)

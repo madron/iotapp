@@ -1,27 +1,20 @@
 import unittest
 from iotapp import entities
+from iotapp.apps.toggle import Toggle
 from iotapp.base import IotApp
 from iotapp.events import Event
 from iotapp.test import TestClient, TestLogger
-
-
-class ToggleApp(IotApp):
-    log_level = 'debug'
-    entities = dict(
-        button=entities.Button(state_topic='button/state'),
-        light=entities.Light(state_topic='light/state', command_topic='light/command'),
-    )
-
-    def on_button_click(self):
-        state = self.light.toggle()
-        self.logger.info('on_button_click -> light: {}'.format(state))
 
 
 class ToggleTest(unittest.TestCase):
     def setUp(self):
         self.client = TestClient()
         self.logger = TestLogger()
-        self.app = ToggleApp(client=self.client, logger=self.logger)
+        entity_library = dict(
+            mybutton=entities.Button(state_topic='button/state'),
+            mylight=entities.Light(state_topic='light/state', command_topic='light/command'),
+        )
+        self.app = Toggle(entity_library=entity_library, button='mybutton', light='mylight', client=self.client, logger=self.logger)
         self.app.button.logger = self.logger
         self.app.light.logger = self.logger
 

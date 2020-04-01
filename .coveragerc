@@ -1,4 +1,4 @@
 [run]
 source = .
 omit =
-    main.py
+    setup.py

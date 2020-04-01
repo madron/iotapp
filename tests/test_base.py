@@ -1,4 +1,5 @@
 import unittest
+from iotapp import entities
 from iotapp.base import IotApp
 from iotapp.test import TestClient, TestLogger
 
@@ -32,3 +33,10 @@ class IotAppTest(unittest.TestCase):
         IotApp(client=self.client, logger=self.logger)
         self.client.receive('topic', 'data')
         self.assertEqual(self.logger.logged[0], ('debug', "on_message - topic b'data'"))
+
+    def test_add_entity(self):
+        self.logger = TestLogger(level='debug')
+        app = IotApp(entity_library=dict(table_button=entities.Button()), client=self.client, logger=self.logger)
+        app.add_entity('button', 'table_button')
+        self.assertIsInstance(app.button, entities.Button)
+        self.assertEqual(app.button.name, 'button')
