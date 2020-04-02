@@ -49,7 +49,11 @@ class IotApp(LoggerMixin):
                 entity = getattr(self, entity_name)
                 for topic in entity.get_subscribe_topics():
                     self.client.subscribe(topic)
-                entity.on_connect()
+                try:
+                    entity.on_connect()
+                except:
+                    self.logger.exception('on_connect {}'.format(entity_name), exc_info=True)
+                    raise
         except:
             self.logger.exception('on_connect', exc_info=True)
 
@@ -66,19 +70,15 @@ class IotApp(LoggerMixin):
             self.logger.exception(msg, exc_info=True)
 
     def process_event(self, name, event):
-        try:
-            self.logger.debug('process_event - {} {}'.format(name, event))
-            func_name = 'on_{}_{}'.format(name, event.type)
-            func = getattr(self, func_name, None)
-            if func:
-                try:
-                    func(*event.args, **event.kwargs)
-                except:
-                    msg = '{} - event: {}'.format(func_name, event)
-                    self.logger.exception(msg, exc_info=True)
-        except:
-            msg = 'process_event - {} {}'.format(name, event)
-            self.logger.exception(msg, exc_info=True)
+        self.logger.debug('process_event - {} {}'.format(name, event))
+        func_name = 'on_{}_{}'.format(name, event.type)
+        func = getattr(self, func_name, None)
+        if func:
+            try:
+                func(*event.args, **event.kwargs)
+            except:
+                msg = '{} - event: {}'.format(func_name, event)
+                self.logger.exception(msg, exc_info=True)
 
     def run(self):
         self.client.connect(

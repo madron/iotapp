@@ -56,3 +56,37 @@ class ToggleLowLevelTest(unittest.TestCase):
         self.assertEqual(self.client.published, [])
         self.assertEqual(self.logger.logged[0], ('warning', 'toggle - state not available'))
         self.assertEqual(self.logger.logged[1], ('info', 'on_button_click -> light: None'))
+
+
+class WrongApp(Toggle):
+    def on_button_click(self):
+        a = 1 / 0
+
+
+class WrongLight(entities.Light):
+    def on_connect(self):
+        a = 1 / 0
+
+
+class WrongAppTest(unittest.TestCase):
+    def setUp(self):
+        self.client = TestClient()
+        self.logger = TestLogger()
+        entity_library = dict(
+            mybutton=entities.Button(state_topic='button/state'),
+            mylight=WrongLight(state_topic='light/state', command_topic='light/command'),
+        )
+        self.app = WrongApp(entity_library=entity_library, button='mybutton', light='mylight', client=self.client, logger=self.logger)
+        self.app.button.logger = self.logger
+        self.app.light.logger = self.logger
+
+    def test_connect(self):
+        self.client.connect()
+        self.assertEqual(self.client.subscribed, ['button/state', 'light/state'])
+        self.assertEqual(self.logger.logged[0], ('info', 'Connected to localhost:1883'))
+        self.assertEqual(self.logger.logged[1], ('exception', 'on_connect light'))
+
+    def test_button_state_on(self):
+        # Button pressed
+        self.app.process_event('button', Event('click'))
+        self.assertEqual(self.logger.logged, [('exception', 'on_button_click - event: click () {}')])
