@@ -2,3 +2,4 @@
 source = .
 omit =
     setup.py
+    iotapp/__main__.py

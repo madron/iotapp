@@ -77,6 +77,7 @@ class StateEntity(Entity):
         self.reset_state()
 
     def reset_state(self):
+        super().reset_state()
         self.state = None
 
     def get_subscribe_topics(self):
@@ -94,7 +95,8 @@ class StateEntity(Entity):
             elif self.state_type == 'json':
                 data = json.loads(payload)
                 value = self.state_value_template.render(value=data)
-        return events + self.get_state_events(value)
+            events += self.get_state_events(value)
+        return events
 
     def get_state_events(self, value):
         return []
