@@ -12,12 +12,8 @@ DEVICE_CLASS = {
 
 
 class DeviceManager(LoggerMixin):
-    def __init__(self, devices=dict(), devices_file=None, log_level=None, logger=None):
+    def __init__(self, devices=dict(), log_level=None, logger=None):
         self.logger = logger or self.get_logger(name='manager', level=log_level)
-        if not devices and devices_file:
-            f = open(devices_file, 'r')
-            devices = yaml.safe_load(f)
-            f.close()
         self.devices = dict()
         for name, config in devices.items():
             try:
