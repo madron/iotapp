@@ -79,11 +79,3 @@ class IotApp(LoggerMixin):
             except:
                 msg = '{} - event: {}'.format(func_name, event)
                 self.logger.exception(msg, exc_info=True)
-
-    def run(self):
-        self.client.connect(
-            self.mqtt_config['host'],
-            self.mqtt_config['port'],
-            self.mqtt_config['keepalive'],
-        )
-        self.client.loop_forever()
