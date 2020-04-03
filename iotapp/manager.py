@@ -51,9 +51,12 @@ class AppManager(LoggerMixin):
         return getattr(module, class_name)
 
     def run(self):
+        config = self.app_instance.mqtt_config
+        if config['username']:
+            self.app_instance.client.username_pw_set(config['username'], password=config['password'])
         self.app_instance.client.connect(
-            self.app_instance.mqtt_config['host'],
-            self.app_instance.mqtt_config['port'],
-            self.app_instance.mqtt_config['keepalive'],
+            config['host'],
+            config['port'],
+            config['keepalive'],
         )
         self.app_instance.client.loop_forever()

@@ -12,7 +12,7 @@ class TestClient:
         self.will_set_called = []
 
     def connect(self, *args, **kwargs):
-        self.on_connect(client=None, userdata=None, flags=None, rc=None)
+        self.on_connect(client=None, userdata=None, flags=None, rc=kwargs.get('rc', 0))
 
     def publish(self, topic, payload=None, qos=0, retain=False, properties=None):
         self.published.append((topic, payload))

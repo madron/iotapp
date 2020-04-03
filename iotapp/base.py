@@ -41,21 +41,25 @@ class IotApp(LoggerMixin):
         )
 
     def on_connect(self, client, userdata, flags, rc):
-        try:
-            self.logger.info('Connected to {host}:{port}'.format(**self.mqtt_config))
-            self.client.will_set(self.availability_topic, 'offline', retain=True)
-            self.client.publish(self.availability_topic, 'online', retain=True)
-            for topic, entity_name in self.topic_entity.items():
-                entity = getattr(self, entity_name)
-                for topic in entity.get_subscribe_topics():
-                    self.client.subscribe(topic)
-                try:
-                    entity.on_connect()
-                except:
-                    self.logger.exception('on_connect {}'.format(entity_name), exc_info=True)
-                    raise
-        except:
-            self.logger.exception('on_connect', exc_info=True)
+        if rc == 0:
+            try:
+                self.logger.info('Connected to {host}:{port}'.format(**self.mqtt_config))
+                self.client.will_set(self.availability_topic, 'offline', retain=True)
+                self.client.publish(self.availability_topic, 'online', retain=True)
+                for topic, entity_name in self.topic_entity.items():
+                    entity = getattr(self, entity_name)
+                    for topic in entity.get_subscribe_topics():
+                        self.client.subscribe(topic)
+                    try:
+                        entity.on_connect()
+                    except:
+                        self.logger.exception('on_connect {}'.format(entity_name), exc_info=True)
+                        raise
+            except:
+                self.logger.exception('on_connect', exc_info=True)
+        else:
+            msg = mqtt.error_string(rc)
+            self.logger.error('Could not connect to {host}:{port} - Return code {} ({})'.format(rc, msg, **self.mqtt_config))
 
     def on_message(self, client, userdata, msg):
         try:

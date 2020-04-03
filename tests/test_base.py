@@ -19,6 +19,13 @@ class IotAppTest(unittest.TestCase):
         self.assertEqual(self.client.will_set_called, [('iotapp/app/state', 'offline')])
         self.assertEqual(self.client.published, [('iotapp/app/state', 'online')])
 
+    def test_connect_fail(self):
+        IotApp(availability_topic='iotapp/app/state', client=self.client, logger=self.logger)
+        self.client.connect(rc=5)
+        self.assertEqual(self.logger.logged, [('error', 'Could not connect to localhost:1883 - Return code 5 (The connection was refused.)')])
+        self.assertEqual(self.client.will_set_called, [])
+        self.assertEqual(self.client.published, [])
+
     def test_publish(self):
         self.client.publish('topic', payload='data')
         self.assertEqual(self.client.published, [('topic', 'data')])
