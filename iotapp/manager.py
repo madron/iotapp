@@ -18,7 +18,7 @@ class AppManager(LoggerMixin):
             self.devices = yaml.safe_load(devices_file)
             devices_file.close()
         else:
-            self.devices = copy(devices_file)
+            self.devices = copy(devices)
         # Apps
         if isinstance(apps, str):
             file_name = apps or os.environ.get('IOTAPP_APPS')
@@ -49,3 +49,11 @@ class AppManager(LoggerMixin):
         class_name = parts[-1]
         module = import_module(module_name)
         return getattr(module, class_name)
+
+    def run(self):
+        self.app_instance.client.connect(
+            self.app_instance.mqtt_config['host'],
+            self.app_instance.mqtt_config['port'],
+            self.app_instance.mqtt_config['keepalive'],
+        )
+        self.app_instance.client.loop_forever()
