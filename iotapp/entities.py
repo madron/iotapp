@@ -11,15 +11,21 @@ class Entity(LoggerMixin):
                     client=None,
                     logger=None,
                     log_level=None,
+                    availability_topic=None,
+                    availability_online='online',
+                    availability_offline='offline',
                 ):
         self.set_name(name)
         self.set_client(client)
         self.log_level = log_level
         self.logger = logger or self.get_logger(name='entity')
+        self.availability_topic = availability_topic
+        self.availability_online = availability_online
+        self.availability_offline = availability_offline
         self.reset_state()
 
     def reset_state(self):
-        pass
+        self.available = None
 
     def set_name(self, name):
         self.name = name
@@ -28,11 +34,30 @@ class Entity(LoggerMixin):
         self.client = client
 
     def get_subscribe_topics(self):
-        return []
+        topics = []
+        if self.availability_topic:
+            topics.append(self.availability_topic)
+        return topics
 
     def get_events(self, topic, payload):
         self.logger.debug('get_events - {} {}'.format(topic, payload))
-        return []
+        events = []
+        if topic == self.availability_topic:
+            value = None
+            if payload == self.availability_online:
+                value = True
+            elif payload == self.availability_offline:
+                value = False
+            if not value == self.available:
+                if value:
+                    events.append(Event('availability', 'online'))
+                    self.available = True
+                    self.logger.info('Status online')
+                else:
+                    events.append(Event('availability', 'offline'))
+                    self.available = False
+                    self.logger.warning('Status offline')
+        return events
 
     def on_connect(self):
         pass

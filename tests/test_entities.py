@@ -17,6 +17,64 @@ class EntityTest(unittest.TestCase):
         entity = entities.Entity()
         self.assertEqual(entity.on_connect(), None)
 
+    def test_availability_not_configured(self):
+        entity = entities.Entity()
+        self.assertEqual(entity.get_subscribe_topics(), [])
+        self.assertEqual(entity.available, None)
+
+
+class EntityAvailabilityTest(unittest.TestCase):
+    def setUp(self):
+        self.client = TestClient()
+        self.logger = TestLogger()
+        self.entity = entities.Entity(
+            name='entity',
+            availability_topic='status',
+            client=self.client,
+            logger=self.logger,
+        )
+
+    def test_availability_unknown(self):
+        self.assertEqual(self.entity.get_subscribe_topics(), ['status'])
+        self.assertEqual(self.entity.available, None)
+        self.assertEqual(self.logger.logged, [])
+
+    def test_availability_unknown_online(self):
+        self.entity.available = None
+        self.assertEqual(self.entity.get_events('status', 'online'), [Event('availability', 'online')])
+        self.assertTrue(self.entity.available)
+        self.assertEqual(self.logger.logged, [('info', 'Status online')])
+
+    def test_availability_offline_online(self):
+        self.entity.available = False
+        self.assertEqual(self.entity.get_events('status', 'online'), [Event('availability', 'online')])
+        self.assertTrue(self.entity.available)
+        self.assertEqual(self.logger.logged, [('info', 'Status online')])
+
+    def test_availability_online_online(self):
+        self.entity.available = True
+        self.assertEqual(self.entity.get_events('status', 'online'), [])
+        self.assertTrue(self.entity.available)
+        self.assertEqual(self.logger.logged, [])
+
+    def test_availability_unknown_offline(self):
+        self.entity.available = None
+        self.assertEqual(self.entity.get_events('status', 'offline'), [Event('availability', 'offline')])
+        self.assertFalse(self.entity.available)
+        self.assertEqual(self.logger.logged, [('warning', 'Status offline')])
+
+    def test_availability_online_offline(self):
+        self.entity.available = True
+        self.assertEqual(self.entity.get_events('status', 'offline'), [Event('availability', 'offline')])
+        self.assertFalse(self.entity.available)
+        self.assertEqual(self.logger.logged, [('warning', 'Status offline')])
+
+    def test_availability_offline_offline(self):
+        self.entity.available = False
+        self.assertEqual(self.entity.get_events('status', 'offline'), [])
+        self.assertFalse(self.entity.available)
+        self.assertEqual(self.logger.logged, [])
+
 
 class ButtonTest(unittest.TestCase):
     def test_text(self):
