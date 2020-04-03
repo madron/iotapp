@@ -37,4 +37,7 @@ setup(
 
     packages=find_packages(),
     install_requires=requirements,
+    entry_points = dict(
+        console_scripts=['iotapp=iotapp.__main__:main'],
+    )
 )
