@@ -23,7 +23,6 @@ class AppManagerTest(unittest.TestCase):
         entity = manager.entities['table_button']
         self.assertIsInstance(entity, entities.Button)
         self.assertEqual(entity.state_topic, 'zigbee/table_button')
-        self.assertEqual(entity.state_type, 'json')
         self.assertEqual(entity.state_value_click, 'single')
         # kitchen_lamp
         entity = manager.entities['kitchen_lamp']

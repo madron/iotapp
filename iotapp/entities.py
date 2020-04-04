@@ -67,14 +67,12 @@ class Entity(LoggerMixin):
 class StateEntity(Entity):
     def __init__(   self,
                     state_topic=None,
-                    state_type='text',
-                    state_value_template='',
+                    state_template='',
                     **kwargs,
                 ):
         super().__init__(**kwargs)
         self.state_topic = state_topic
-        self.state_type = state_type
-        self.state_value_template = Template(state_value_template)
+        self.state_template = state_template
         self.reset_state()
 
     def reset_state(self):
@@ -90,12 +88,7 @@ class StateEntity(Entity):
     def get_events(self, topic, payload):
         events = super().get_events(topic, payload)
         if topic == self.state_topic:
-            value = None
-            if self.state_type == 'text':
-                value = payload
-            elif self.state_type == 'json':
-                data = json.loads(payload)
-                value = self.state_value_template.render(value=data)
+            value = get_template_value(payload, self.state_template)
             events += self.get_state_events(value)
         return events
 

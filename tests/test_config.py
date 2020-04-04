@@ -28,9 +28,8 @@ class DevicesManagerTest(unittest.TestCase):
         self.assertEqual(entity['class'], entities.Button)
         config = entity['config']
         self.assertEqual(config['state_topic'], 'zigbee/button')
-        self.assertEqual(config['state_type'], 'json')
         self.assertEqual(config['state_value_click'], 'single')
-        self.assertEqual(config['state_value_template'], '{{ value.click }}')
+        self.assertEqual(config['state_template'], '{{ value.click }}')
         # kitchen
         entity = manager.entities['kitchen']
         self.assertEqual(entity['class'], entities.Light)

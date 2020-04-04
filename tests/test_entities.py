@@ -81,9 +81,8 @@ class ButtonTest(unittest.TestCase):
         topic = 'state/topic'
         button = entities.Button(
             state_topic = topic,
-            state_type = 'text',
             state_value_click = 'pressed',
-            state_value_template = '',
+            state_template = '',
         )
         self.assertEqual(button.get_events(topic, 'pressed'), [Event('click')])
         self.assertEqual(button.get_events(topic, ''), [])
@@ -92,9 +91,8 @@ class ButtonTest(unittest.TestCase):
         topic = 'state/topic'
         button = entities.Button(
             state_topic = topic,
-            state_type = 'json',
             state_value_click = 'single',
-            state_value_template = '{{ value.click }}',
+            state_template = '{{ value.click }}',
         )
         payload = '{"battery":100,"voltage":3015,"linkquality":0,"click":"single"}'
         self.assertEqual(button.get_events(topic, payload), [Event('click')])

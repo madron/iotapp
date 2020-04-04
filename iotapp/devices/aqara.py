@@ -11,9 +11,8 @@ class Button(Device):
         entity = dict()
         config = dict(
             state_topic='zigbee/{}'.format(self.name),
-            state_type = 'json',
             state_value_click = 'single',
-            state_value_template = '{{ value.click }}',
+            state_template = '{{ value.click }}',
         )
         entity[self.name] = {'class': entities.Button, 'config': config}
         return entity
