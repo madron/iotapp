@@ -30,7 +30,7 @@ class AppManager(LoggerMixin):
         # Config
         app_data = copy(self.apps[self.name])
         self.app = app_data.pop('app')
-        self.entity_config = app_data.pop('entities', dict())
+        self.entities_config = app_data.pop('entities', dict())
         self.config = app_data
         # Entities
         device_manager = DeviceManager(devices=self.devices, log_level=log_level, logger=logger)
@@ -38,6 +38,8 @@ class AppManager(LoggerMixin):
         for entity_name, entity_data in device_manager.entities.items():
             entity_class = entity_data['class']
             entity_config = entity_data['config']
+            app_entity_config = self.entities_config.get(entity_name, dict()) or dict()
+            entity_config.update(app_entity_config)
             self.entities[entity_name] = entity_class(**entity_config)
         # App instance
         self.app_class = self.get_app_class()

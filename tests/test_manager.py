@@ -31,3 +31,23 @@ class AppManagerTest(unittest.TestCase):
         self.assertEqual(entity.command_topic, 'shellies/kitchen_lamp/white/0/command')
         # App Instance
         self.assertIsInstance(manager.app_instance, Toggle)
+
+    def test_apps_entity_override(self):
+        devices = dict(
+            button=dict(type='aqara-button'),
+            light=dict(type='shelly-rgbw2'),
+        )
+        apps = dict(
+            app=dict(
+                app='iotapp.apps.toggle.Toggle',
+                entities=dict(
+                    button=dict(log_level='debug'),
+                ),
+                button='button',
+                light='light',
+            ),
+        )
+        manager = AppManager(name='app', devices=devices, apps=apps)
+        # button
+        entity = manager.entities['button']
+        self.assertEqual(entity.log_level, 'debug')
