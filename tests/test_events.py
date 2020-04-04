@@ -9,3 +9,6 @@ class EventTest(unittest.TestCase):
 
     def test_not_equal(self):
         self.assertNotEqual(Event('status', 'online'), Event('status', 'offline'))
+
+    def test_repr(self):
+        self.assertEqual(str(Event('status', 'online')), "status ('online',) {}")

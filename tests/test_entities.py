@@ -112,50 +112,82 @@ class LightShellyRgbw2Test(unittest.TestCase):
         self.logger = TestLogger()
         self.state_topic = 'shellies/shelly_rgbw2/white/0'
         self.command_topic = 'shellies/shelly_rgbw2/white/0/command'
-        self.light = entities.Light(
+        self.brightness_state_topic = 'shellies/shelly_rgbw2/white/0/status'
+        self.brightness_state_template = '{{ value.brightness }}'
+        self.brightness_command_topic = 'shellies/shelly_rgbw2/white/0/set'
+        self.brightness_command_template = '{"brightness": {{ value }}}'
+        self.entity = entities.Light(
             client=self.client,
             logger=self.logger,
             state_topic = self.state_topic,
             command_topic = self.command_topic,
+            brightness_state_topic = self.brightness_state_topic,
+            brightness_state_template = self.brightness_state_template,
+            brightness_command_topic = self.brightness_command_topic,
+            brightness_command_template = self.brightness_command_template,
         )
-        self.assertEqual(self.light.state, None)
+        self.assertEqual(self.entity.state, None)
 
     def test_get_subscribe_topics(self):
-        self.assertEqual(self.light.get_subscribe_topics(), ['shellies/shelly_rgbw2/white/0'])
+        self.assertEqual(
+            self.entity.get_subscribe_topics(),
+            [
+                'shellies/shelly_rgbw2/white/0',
+                'shellies/shelly_rgbw2/white/0/status',
+            ]
+        )
 
     def test_get_events_on(self):
-        events = self.light.get_events(self.state_topic, 'on')
+        events = self.entity.get_events(self.state_topic, 'on')
         self.assertEqual(events, [])
-        self.assertEqual(self.light.state, 'on')
+        self.assertEqual(self.entity.state, 'on')
 
     def test_get_events_off(self):
-        events = self.light.get_events(self.state_topic, 'off')
+        events = self.entity.get_events(self.state_topic, 'off')
         self.assertEqual(events, [])
-        self.assertEqual(self.light.state, 'off')
+        self.assertEqual(self.entity.state, 'off')
 
     def test_turn_on(self):
-        self.light.turn_on()
+        self.entity.turn_on()
         self.assertEqual(self.client.published, [('shellies/shelly_rgbw2/white/0/command', 'on')])
 
     def test_turn_off(self):
-        self.light.turn_off()
+        self.entity.turn_off()
         self.assertEqual(self.client.published, [('shellies/shelly_rgbw2/white/0/command', 'off')])
 
     def test_toggle_state_on(self):
-        self.light.state = 'on'
-        command = self.light.toggle()
+        self.entity.state = 'on'
+        command = self.entity.toggle()
         self.assertEqual(command, 'off')
         self.assertEqual(self.client.published, [('shellies/shelly_rgbw2/white/0/command', 'off')])
 
     def test_toggle_state_off(self):
-        self.light.state = 'off'
-        command = self.light.toggle()
+        self.entity.state = 'off'
+        command = self.entity.toggle()
         self.assertEqual(command, 'on')
         self.assertEqual(self.client.published, [('shellies/shelly_rgbw2/white/0/command', 'on')])
 
     def test_toggle_state_unavailable(self):
-        self.light.state = None
-        command = self.light.toggle()
+        self.entity.state = None
+        command = self.entity.toggle()
         self.assertEqual(command, None)
         self.assertEqual(self.client.published, [])
         self.assertEqual(self.logger.logged, [('warning', 'toggle - state not available')])
+
+    def test_brightness_state(self):
+        payload = '{"ison":true,"has_timer":false,"timer_remaining":0,"mode":"white","brightness":11,"power":8.26,"overpower":false}'
+        self.assertEqual(self.entity.get_events(self.brightness_state_topic, payload), [Event('brightness_change', 11)])
+
+    def test_brightness_state_unchanged(self):
+        self.entity.brightness = 11
+        payload = '{"ison":true,"has_timer":false,"timer_remaining":0,"mode":"white","brightness":11,"power":8.26,"overpower":false}'
+        self.assertEqual(self.entity.get_events(self.brightness_state_topic, payload), [])
+
+    def test_brightness_state_float_round(self):
+        payload = '{"ison":true,"has_timer":false,"timer_remaining":0,"mode":"white","brightness":15.4,"power":8.26,"overpower":false}'
+        self.assertEqual(self.entity.get_events(self.brightness_state_topic, payload), [Event('brightness_change', 15)])
+
+    def test_brightness_command(self):
+        self.assertEqual(self.entity.brightness, None)
+        self.entity.brightness = 20
+        self.assertEqual(self.client.published, [('shellies/shelly_rgbw2/white/0/set', '{"brightness": 20}')])

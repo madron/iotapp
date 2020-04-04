@@ -15,3 +15,7 @@ class Rgbw2Test(unittest.TestCase):
         self.assertEqual(config['availability_offline'], 'false')
         self.assertEqual(config['state_topic'], 'shellies/kitchen/white/0')
         self.assertEqual(config['command_topic'], 'shellies/kitchen/white/0/command')
+        self.assertEqual(config['brightness_state_topic'], 'shellies/kitchen/white/0/status')
+        self.assertEqual(config['brightness_state_template'], '{{ value.brightness }}')
+        self.assertEqual(config['brightness_command_topic'], 'shellies/kitchen/white/0/set')
+        self.assertEqual(config['brightness_command_template'], '{"brightness": {{ value }}}')

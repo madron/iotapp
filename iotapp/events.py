@@ -9,5 +9,8 @@ class Event(object):
             return True
         return False
 
-    def __str__(self):
+    def __repr__(self):
         return '{} {} {}'.format(self.type, self.args, self.kwargs)
+
+    def __str__(self):
+        return self.__repr__()

@@ -1,8 +1,16 @@
-import json
+import json as jsonlib
 from jinja2 import Template
 from iotapp.events import Event
 from iotapp.logger import LoggerMixin
-from iotapp.utils import get_template_value
+
+
+def get_template_value(value, template=None, json=True):
+        if template:
+            data = value
+            if json:
+                data = jsonlib.loads(value)
+            return Template(template).render(value=data)
+        return value
 
 
 class Entity(LoggerMixin):
@@ -129,9 +137,7 @@ class Light(StateEntity):
                     command_value_off='off',
                     command_value_template='',
                     brightness_state_topic=None,
-                    brightness_state_template='',
                     brightness_command_topic=None,
-                    brightness_command_template='',
                     **kwargs
                 ):
         super().__init__(**kwargs)
@@ -143,13 +149,11 @@ class Light(StateEntity):
         self.command_value_off = command_value_off
         self.command_value_template = command_value_template
         self.brightness_state_topic = brightness_state_topic
-        self.brightness_state_template = brightness_state_template
         self.brightness_command_topic = brightness_command_topic
-        self.brightness_command_template = brightness_command_template
 
     def reset_state(self):
         super().reset_state()
-        self._brightness = None
+        self.brightness = None
 
     def get_subscribe_topics(self):
         topics = super().get_subscribe_topics()
@@ -159,13 +163,14 @@ class Light(StateEntity):
 
     def get_events(self, topic, payload):
         events = super().get_events(topic, payload)
-        if topic == self.brightness_state_topic:
-            value = get_template_value(payload, self.brightness_state_template)
-            value = round(float(value))
-            if not value == self._brightness:
-                self._brightness = value
-                self.logger.debug('brightness {}'.format(value))
-                events.append(Event('brightness_change', value))
+        if topic == self.state_topic:
+            value = None
+            if self.state_type == 'text':
+                value = payload
+            elif self.state_type == 'json':
+                data = json.loads(payload)
+                value = self.state_value_template.render(value=data)
+            events += self.get_state_events(value)
         return events
 
     def get_state_events(self, value):
@@ -193,15 +198,3 @@ class Light(StateEntity):
             self.turn_on()
             return 'on'
         self.logger.warning('toggle - state not available')
-
-    @property
-    def brightness(self):
-        return self._brightness
-
-    @brightness.setter
-    def brightness(self, value):
-        self._brightness = value
-        self.client.publish(
-            self.brightness_command_topic,
-            payload=get_template_value(value, self.brightness_command_template, json=False)
-        )

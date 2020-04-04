@@ -15,6 +15,11 @@ class Rgbw2(Device):
             availability_offline='false',
             state_topic='shellies/{}/white/0'.format(self.name),
             command_topic='shellies/{}/white/0/command'.format(self.name),
+            brightness_state_topic='shellies/{}/white/0/status'.format(self.name),
+            brightness_state_template='{{ value.brightness }}',
+            brightness_command_topic='shellies/{}/white/0/set'.format(self.name),
+            brightness_command_template='{"brightness": {{ value }}}',
+
         )
         entity[self.name] = {'class': entities.Light, 'config': config}
         return entity
