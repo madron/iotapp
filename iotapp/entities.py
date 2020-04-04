@@ -1,5 +1,3 @@
-import json
-from jinja2 import Template
 from iotapp.events import Event
 from iotapp.logger import LoggerMixin
 from iotapp.utils import get_template_value
