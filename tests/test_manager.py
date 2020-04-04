@@ -35,7 +35,7 @@ class AppManagerTest(unittest.TestCase):
     def test_apps_entity_override(self):
         devices = dict(
             button=dict(type='aqara-button'),
-            light=dict(type='shelly-rgbw2'),
+            light=dict(type='shelly-rgbw2', channel1='light'),
         )
         apps = dict(
             app=dict(

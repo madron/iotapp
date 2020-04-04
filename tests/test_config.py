@@ -18,6 +18,7 @@ class DevicesManagerTest(unittest.TestCase):
             kitchen=dict(
                 type='shelly-rgbw2',
                 mode='white',
+                channel1='kitchen'
             ),
         )
         manager = DeviceManager(devices=devices)
@@ -46,6 +47,7 @@ class DevicesManagerTest(unittest.TestCase):
             kitchen=dict(
                 type='shelly-rgbw2',
                 mode='white',
+                channel1='kitchen'
             ),
         )
         manager = DeviceManager(devices=devices, logger=self.logger)

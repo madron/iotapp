@@ -3,3 +3,4 @@ table_button:
 kitchen_lamp:
   type: shelly-rgbw2
   mode: white
+  channel1: kitchen_lamp
